@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doki Doki Literature Club - Official Fan Forum</title>
+
+    <!-- Tailwind CSS desde CDN para utilidad de diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome para iconos de interfaz (pluma, libro, corazon, etc.) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Fuentes de Google: M PLUS Rounded 1c (estilo anime/cute) y Vt323 (glitch/retro) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=VT323&family=Caveat:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==========================================================================
+           VARIABLES DE TEMA (PALETA DE COLORES DDLC)
+           Puedes cambiar los valores hexadecimales aquí para ajustar toda la web.
+           ========================================================================== */
+        :root {
+            --ddlc-pink-light: #ffbde2;
+            --ddlc-pink-main: #ff71b8;
+            --ddlc-pink-dark: #d63384;
+            --ddlc-purple: #a855f7;
+            --ddlc-coral: #ff6b6b;
+            --ddlc-bg: #fff0f5;
+            --ddlc-card-bg: rgba(255, 255, 255, 0.85);
+            --ddlc-glitch-red: #ff0055;
+            --ddlc-glitch-cyan: #00ffff;
+        }
+
+        /* Configuración base de tipografía */
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--ddlc-bg);
+            /* Fondo con gradiente de malla (Mesh Gradient) que simula el cuaderno de poesía */
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(255, 189, 226, 0.6) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.4) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 113, 184, 0.5) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(255, 220, 240, 0.7) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #4a4a4a;
+            overflow-x: hidden;
+        }
+
+        /* Fuente especial tipo 'poema/escrito a mano' para citas */
+        .font-poem {
+            font-family: 'Caveat', cursive;
+        }
+
+        /* Fuente tipo retro/terminal para el efecto glitch de Monika */
+        .font-glitch {
+            font-family: 'VT323', monospace;
+        }
+
+        /* ==========================================================================
+           ANIMACIONES ATADAS AL SCROLL (SCROLL-DRIVEN ANIMATIONS)
+           Uso de 'animation-timeline: view()' para reaccionar a la entrada y salida de pantalla.
+           ========================================================================== */
+
+        /* 1. Efecto de entrada/salida 3D con opacidad y escala para los posts */
+        @keyframes scroll3DEntranceExit {
+            /* Entrada al hacer scroll descendente */
+            0% {
+                opacity: 0;
+                transform: translateY(100px) scale(0.85) rotateX(-15deg);
+                filter: blur(10px);
+            }
+            /* Estado completamente visible en el centro */
+            25%, 75% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0deg);
+                filter: blur(0px);
+            }
+            /* Salida por la parte superior de la pantalla */
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0.9) rotateX(15deg);
+                filter: blur(8px);
+            }
+        }
+
+        /* Aplicación de la animación atada a la vista (view-timeline) */
+        .scroll-card-anim {
+            /* Fallback para navegadores antiguos: animación por defecto */
+            animation: scroll3DEntranceExit linear both;
+            /* Vincula el tiempo de la animación directamente a la posición del elemento en el viewport */
+            animation-timeline: view();
+            /* Rango de activación: inicia cuando el elemento entra 5% abajo y termina al salir por arriba */
+            animation-range: entry 5% exit 95%;
+        }
+
+        /* 2. Barra de progreso de lectura atada al Scroll global de la página */
+        @keyframes scrollProgress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+
+        .scroll-progress-bar {
+            animation: scrollProgress auto linear;
+            animation-timeline: scroll(root);
+        }
+
+        /* ==========================================================================
+           EFECTOS VISUALES AVANZADOS (Glitch, Glassmorphism & Neón)
+           ========================================================================== */
+
+        /* Glassmorphism: Tarjetas traslúcidas estilo cristal */
+        .glass-card {
+            background: var(--ddlc-card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(255, 113, 184, 0.15);
+        }
+
+        /* Efecto Glitch visual para elementos destacados */
+        .glitch-hover {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .glitch-hover:hover {
+            text-shadow: 2px 0 var(--ddlc-glitch-cyan), -2px 0 var(--ddlc-glitch-red);
+            animation: subtleGlitch 0.3s infinite alternate;
+        }
+
+        @keyframes subtleGlitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 1px); }
+            80% { transform: translate(1px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        /* Botón estilo 'Poem Minigame' de DDLC */
+        .ddlc-button {
+            background: linear-gradient(135deg, var(--ddlc-pink-main), var(--ddlc-pink-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 113, 184, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .ddlc-button:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 25px rgba(255, 113, 184, 0.6);
+        }
+
+        .ddlc-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Animación para puntos flotantes de fondo estilo encaje/polka-dots */
+        .polka-bg {
+            background-image: radial-gradient(var(--ddlc-pink-main) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.15;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen pb-12">
+
+    <!-- BARRA DE PROGRESO DE SCROLL: Se estira automáticamente de 0% a 100% según bajamos -->
+    <div class="fixed top-0 left-0 h-2 bg-gradient-to-r from-pink-400 via-purple-400 to-red-400 z-50 scroll-progress-bar"></div>
+
+    <!-- ENCABEZADO PRINCIPAL / HEADER -->
+    <header class="sticky top-0 z-40 w-full glass-card border-b border-pink-200 shadow-md transition-all duration-300">
+        <div class="max-w-7xl mx-mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- LOGO DEL CLUB CON EFECTO HOVER -->
+            <div class="flex items-center gap-3 cursor-pointer group">
+                <div class="w-12 h-12 rounded-full bg-pink-400 flex items-center justify-center text-white text-2xl font-bold shadow-lg group-hover:rotate-12 transition-transform duration-300">
+                    <i class="fa-solid fa-heart"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-pink-600 tracking-wide glitch-hover">
+                        Literature Club! <span class="text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full uppercase border border-pink-300">Foro Oficial</span>
+                    </h1>
+                    <p class="text-xs text-purple-500 font-medium">Donde los poemas y teorías cobran vida</p>
+                </div>
+            </div>
+
+            <!-- NAVEGACIÓN PRINCIPAL -->
+            <nav class="hidden md:flex items-center gap-6 font-bold text-gray-700">
+                <a href="#feed" class="hover:text-pink-500 transition-colors flex items-center gap-2"><i class="fa-solid fa-comments text-pink-400"></i> Hilos</a>
+                <a href="#members" class="hover:text-pink-500 transition-colors flex items-center gap-2"><i class="fa-solid fa-users text-purple-400"></i> Integrantes</a>
+                <a href="#new-post" class="hover:text-pink-500 transition-colors flex items-center gap-2"><i class="fa-solid fa-feather-pointed text-red-400"></i> Escribir Poema</a>
+            </nav>
+
+            <!-- ESTADO / LOGIN SIMULADO -->
+            <div class="flex items-center gap-3">
+                <span class="hidden sm:inline text-xs bg-purple-100 text-purple-700 font-semibold px-3 py-1.5 rounded-full border border-purple-200">
+                    <i class="fa-solid fa-circle text-green-400 text-[10px] animate-pulse mr-1"></i> Monika está conectada
+                </span>
+                <button onclick="document.getElementById('new-post').scrollIntoView({behavior: 'smooth'})" class="ddlc-button px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Publicar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- BANNER HERO CON PARALLAX Y EFECTOS ÓPTICOS -->
+    <section class="relative my-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="relative rounded-3xl overflow-hidden glass-card p-8 sm:p-12 text-center border-2 border-pink-300 shadow-2xl">
+            <div class="absolute inset-0 polka-bg pointer-events-none"></div>
+            
+            <!-- IMAGEN DE BANNER REEMPLAZABLE -->
+            <!-- NOTA PARA EL USUARIO: Puedes reemplazar la URL del atributo src por tu propia imagen de banner de DDLC -->
+            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80" 
+                 alt="DDLC Banner Background" 
+                 class="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none filter blur-sm">
+
+            <div class="relative z-10 max-w-3xl mx-auto">
+                <span class="bg-pink-100 text-pink-600 font-bold px-4 py-1.5 rounded-full text-xs uppercase tracking-wider border border-pink-300 inline-block mb-3">
+                    Bienvenidos al club de literatura
+                </span>
+                <h2 class="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-red-500 mb-4 leading-tight">
+                    Comparte tu pasión por la poesía y las teorías
+                </h2>
+                <p class="text-gray-600 text-base sm:text-lg mb-6 font-poem text-2xl">
+                    "Escribe el camino hacia el corazón de ella..."
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTENIDO PRINCIPAL: GRID DE 2 COLUMNAS (SIDEBAR + FEED) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 my-8">
+
+        <!-- ==========================================================================
+           PANEL LATERAL / SIDEBAR (3 columnas en desktop)
+           ========================================================================== -->
+        <aside class="lg:col-span-4 space-y-6" id="members">
+            
+            <!-- TARJETA 1: LISTA DE INTEGRANTES PRINCIPALES (DDLC CHARACTERS) -->
+            <div class="glass-card rounded-2xl p-6 border border-pink-200">
+                <h3 class="text-lg font-extrabold text-pink-600 mb-4 flex items-center gap-2 border-b border-pink-200 pb-2">
+                    <i class="fa-solid fa-crown text-amber-400"></i> Miembros del Club
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- MONIKA -->
+                    <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-pink-50/80 transition-colors group cursor-pointer">
+                        <!-- IMAGEN AVATAR REEMPLAZABLE MONIKA -->
+                        <img src="https://placehold.co/100x100/a855f7/ffffff?text=Monika" alt="Monika Avatar" class="w-12 h-12 rounded-full object-cover border-2 border-purple-400 shadow group-hover:scale-105 transition-transform">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1">
+                                Monika <span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">Presidenta</span>
+                            </h4>
+                            <p class="text-xs text-gray-500 font-poem text-base">"Todos tienen una chispa de poesía..."</p>
+                        </div>
+                    </div>
+
+                    <!-- SAYORI -->
+                    <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-pink-50/80 transition-colors group cursor-pointer">
+                        <!-- IMAGEN AVATAR REEMPLAZABLE SAYORI -->
+                        <img src="https://placehold.co/100x100/ff71b8/ffffff?text=Sayori" alt="Sayori Avatar" class="w-12 h-12 rounded-full object-cover border-2 border-pink-400 shadow group-hover:scale-105 transition-transform">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1">
+                                Sayori <span class="text-[10px] bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded">Vicepresidenta</span>
+                            </h4>
+                            <p class="text-xs text-gray-500 font-poem text-base">"¡Los galletas hacen todo mejor!"</p>
+                        </div>
+                    </div>
+
+                    <!-- YURI -->
+                    <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-pink-50/80 transition-colors group cursor-pointer">
+                        <!-- IMAGEN AVATAR REEMPLAZABLE YURI -->
+                        <img src="https://placehold.co/100x100/6b21a8/ffffff?text=Yuri" alt="Yuri Avatar" class="w-12 h-12 rounded-full object-cover border-2 border-purple-600 shadow group-hover:scale-105 transition-transform">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1">
+                                Yuri <span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">Miembro</span>
+                            </h4>
+                            <p class="text-xs text-gray-500 font-poem text-base">"El té y un buen libro complejo..."</p>
+                        </div>
+                    </div>
+
+                    <!-- NATSUKI -->
+                    <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-pink-50/80 transition-colors group cursor-pointer">
+                        <!-- IMAGEN AVATAR REEMPLAZABLE NATSUKI -->
+                        <img src="https://placehold.co/100x100/ff6b6b/ffffff?text=Natsuki" alt="Natsuki Avatar" class="w-12 h-12 rounded-full object-cover border-2 border-red-300 shadow group-hover:scale-105 transition-transform">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1">
+                                Natsuki <span class="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded">Miembro</span>
+                            </h4>
+                            <p class="text-xs text-gray-500 font-poem text-base">"¡El manga SÍ es literatura!"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA 2: REGLAS DEL CLUB DE LITERATURA -->
+            <div class="glass-card rounded-2xl p-6 border border-purple-200">
+                <h3 class="text-lg font-extrabold text-purple-700 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-scroll text-pink-500"></i> Reglas del Club
+                </h3>
+                <ul class="text-xs text-gray-600 space-y-2 list-disc list-inside">
+                    <li>Escribe un poema nuevo para cada reunión.</li>
+                    <li>Respeta el estilo literario de cada integrante.</li>
+                    <li>No alteres los archivos del sistema (.chr)...</li>
+                    <li>¡Mantén un ambiente amable y lleno de inspiración!</li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- ==========================================================================
+           SECCIÓN PRINCIPAL DE POSTS / HILOS DEL FORO (8 columnas)
+           ========================================================================== -->
+        <section class="lg:col-span-8 space-y-8" id="feed">
+
+            <!-- CONTENEDOR DINÁMICO DE POSTS -->
+            <div id="posts-container" class="space-y-8">
+
+                <!-- POST 1: PUBLICADO POR MONIKA (CON EFECTO GLITCH/MISTERIO AL SCROLL) -->
+                <!-- La clase 'scroll-card-anim' activa la animación de entrada/salida 3D al desplazarse -->
+                <article class="glass-card rounded-3xl p-6 sm:p-8 scroll-card-anim border-l-8 border-l-purple-500 relative overflow-hidden">
+                    
+                    <!-- ENCABEZADO DEL POST -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <img src="https://placehold.co/100x100/a855f7/ffffff?text=Monika" alt="Monika" class="w-10 h-10 rounded-full border-2 border-purple-400">
+                            <div>
+                                <h4 class="font-extrabold text-gray-800 text-sm glitch-hover">Monika</h4>
+                                <span class="text-[10px] text-gray-400">Publicado hoy a las 14:20 • Hilo Fijado</span>
+                            </div>
+                        </div>
+                        <span class="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full">
+                            <i class="fa-solid fa-code text-xs mr-1"></i> Consejo Diario
+                        </span>
+                    </div>
+
+                    <!-- TITULO Y CONTENIDO -->
+                    <h3 class="text-xl font-black text-gray-800 mb-3 hover:text-pink-600 transition-colors">
+                        ¡Bienvenidos a la sección de consejos de escritura de Monika!
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-4 leading-relaxed">
+                        A veces, cuando escribes un poema, es fácil atascarse intentando buscar las palabras perfectas. ¡Pero no te preocupes! Lo más importante es dejar fluir tu perspectiva única sobre el mundo.
+                    </p>
+
+                    <!-- IMAGEN ADJUNTA EN EL POST -->
+                    <div class="my-4 rounded-2xl overflow-hidden border border-pink-200 shadow-md">
+                        <img src="https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80" alt="Cuaderno de Poesía" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-500">
+                    </div>
+
+                    <!-- POEMA EMBEBIDO -->
+                    <div class="bg-pink-50/80 p-4 rounded-xl border border-pink-200 mb-4 font-poem text-xl text-gray-700">
+                        "El agujero en la pared no deja de mirar.<br>
+                        Pinto sobre él con colores brillantes,<br>
+                        pero la tinta siempre parece derramarse..."
+                    </div>
+
+                    <!-- PIE DEL POST / INTERACCIONES -->
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100 text-xs text-gray-500 font-bold">
+                        <div class="flex items-center gap-4">
+                            <button class="hover:text-pink-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fa-regular fa-heart text-pink-500 text-sm"></i> 42 Me gusta
+                            </button>
+                            <button class="hover:text-pink-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fa-regular fa-comment text-purple-500 text-sm"></i> 12 Comentarios
+                            </button>
+                        </div>
+                        <span class="text-purple-400 font-glitch text-sm">JUST_MONIKA</span>
+                    </div>
+                </article>
+
+
+                <!-- POST 2: PUBLICADO POR NATSUKI (TEMA MANGA) -->
+                <article class="glass-card rounded-3xl p-6 sm:p-8 scroll-card-anim border-l-8 border-l-red-400">
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <img src="https://placehold.co/100x100/ff6b6b/ffffff?text=Natsuki" alt="Natsuki" class="w-10 h-10 rounded-full border-2 border-red-400">
+                            <div>
+                                <h4 class="font-extrabold text-gray-800 text-sm">Natsuki</h4>
+                                <span class="text-[10px] text-gray-400">Publicado ayer a las 18:45</span>
+                            </div>
+                        </div>
+                        <span class="bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full">
+                            <i class="fa-solid fa-book-open text-xs mr-1"></i> Debate
+                        </span>
+                    </div>
+
+                    <h3 class="text-xl font-black text-gray-800 mb-3">
+                        Por milésima vez: ¡El Manga es Literatura Real y Compleja!
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-4 leading-relaxed">
+                        No entiendo por qué algunas personas en este club siguen mirando de reojo mis tomos de Parfait Girls. La forma en que combina narrativa visual con emociones directas es totalmente poética. ¡Acepto debate en los comentarios!
+                    </p>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100 text-xs text-gray-500 font-bold">
+                        <div class="flex items-center gap-4">
+                            <button class="hover:text-pink-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fa-regular fa-heart text-pink-500 text-sm"></i> 28 Me gusta
+                            </button>
+                            <button class="hover:text-pink-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fa-regular fa-comment text-purple-500 text-sm"></i> 19 Comentarios
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+
+                <!-- POST 3: PUBLICADO POR YURI (ANALYSIS LITERARIO) -->
+                <article class="glass-card rounded-3xl p-6 sm:p-8 scroll-card-anim border-l-8 border-l-indigo-600">
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <img src="https://placehold.co/100x100/6b21a8/ffffff?text=Yuri" alt="Yuri" class="w-10 h-10 rounded-full border-2 border-indigo-600">
+                            <div>
+                                <h4 class="font-extrabold text-gray-800 text-sm">Yuri</h4>
+                                <span class="text-[10px] text-gray-400">Publicado hace 2 días</span>
+                            </div>
+                        </div>
+                        <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">
+                            <i class="fa-solid fa-feather text-xs mr-1"></i> Simbolismo
+                        </span>
+                    </div>
+
+                    <h3 class="text-xl font-black text-gray-800 mb-3">
+                        El uso de metáforas oscuras y la simetría en la poesía surrealista
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-4 leading-relaxed">
+                        Me gustaría profundizar en cómo el imaginario visceral puede transportar al lector a un trance casi de introspección profunda. Preparemos una taza de té de jazmín y discutamos la complejidad del simbolismo oculto...
+                    </p>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100 text-xs text-gray-500 font-bold">
+                        <div class="flex items-center gap-4">
+                            <button class="hover:text-pink-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fa-regular fa-heart text-pink-500 text-sm"></i> 35 Me gusta
+                            </button>
+                            <button class="hover:text-pink-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fa-regular fa-comment text-purple-500 text-sm"></i> 8 Comentarios
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- ==========================================================================
+               FORMULARIO INTERACTIVO PARA PUBLICAR NUEVOS POSTS/POEMAS
+               ========================================================================== -->
+            <div class="glass-card rounded-3xl p-6 sm:p-8 border-2 border-pink-300 shadow-xl" id="new-post">
+                <h3 class="text-2xl font-black text-pink-600 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-nib"></i> Escribe tu propio Poema o Publicación
+                </h3>
+                <p class="text-gray-500 text-xs mb-6">Añade palabras al cuaderno digital del club de literatura.</p>
+
+                <form id="poem-form" onsubmit="addNewPost(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Tu Nombre / Pseudónimo</label>
+                            <input type="text" id="post-author" required placeholder="Ej. Poeta Anónimo" 
+                                   class="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/70 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Categoría</label>
+                            <select id="post-category" class="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/70 text-sm">
+                                <option value="Poema">Poema</option>
+                                <option value="Teoría">Teoría</option>
+                                <option value="Debate">Debate Literario</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Título del Tema</label>
+                        <input type="text" id="post-title" required placeholder="Ingresa un título llamativo..." 
+                               class="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/70 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Contenido / Poema</label>
+                        <textarea id="post-content" rows="4" required placeholder="Escribe tus versos o tus pensamientos sobre literatura aquí..." 
+                                  class="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/70 text-sm font-poem text-xl"></textarea>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-[11px] text-gray-400">
+                            <i class="fa-solid fa-circle-info mr-1"></i> Se agregará inmediatamente al feed.
+                        </span>
+                        <button type="submit" class="ddlc-button px-6 py-3 rounded-full font-bold text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Compartir Poema
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- NOTIFICACIÓN EMERGENTE ESTILO GLITCH/DDLC -->
+    <div id="glitch-toast" class="fixed bottom-6 right-6 z-50 transform translate-y-32 opacity-0 transition-all duration-500 pointer-events-none">
+        <div class="bg-gray-900 text-white border-2 border-pink-500 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center text-white text-xl animate-bounce">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+            <div>
+                <h5 class="font-bold text-pink-400 text-sm glitch-hover" id="toast-title">¡Poema Guardado!</h5>
+                <p class="text-xs text-gray-300" id="toast-msg">Monika ha registrado tu poema en el club.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIE DE PÁGINA / FOOTER -->
+    <footer class="mt-16 text-center text-xs text-gray-500 py-6 border-t border-pink-200">
+        <p>Literature Club Fan Forum • Creado con efectos de Scroll CSS Modernos</p>
+        <p class="text-[10px] text-gray-400 mt-1 font-glitch">JUST MONIKA. OK?</p>
+    </footer>
+
+    <!-- ==========================================================================
+       JAVASCRIPT INTERACTIVO LIGERO
+       ========================================================================== -->
+    <script>
+        /* Función para manejar la publicación interactiva de nuevos poemas */
+        function addNewPost(event) {
+            // Evitamos que la página se recargue por defecto
+            event.preventDefault();
+
+            // Obtenemos los datos introducidos en el formulario
+            const author = document.getElementById('post-author').value;
+            const category = document.getElementById('post-category').value;
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+
+            // Seleccionamos el contenedor de los hilos
+            const postsContainer = document.getElementById('posts-container');
+
+            // Creamos el elemento HTML para la nueva tarjeta de post
+            const newPostHTML = document.createElement('article');
+            newPostHTML.className = 'glass-card rounded-3xl p-6 sm:p-8 scroll-card-anim border-l-8 border-l-pink-400 relative overflow-hidden';
+            
+            newPostHTML.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <img src="https://placehold.co/100x100/ff71b8/ffffff?text=${encodeURIComponent(author.substring(0,2).toUpperCase())}" 
+                             alt="${author}" class="w-10 h-10 rounded-full border-2 border-pink-400">
+                        <div>
+                            <h4 class="font-extrabold text-gray-800 text-sm">${escapeHTML(author)}</h4>
+                            <span class="text-[10px] text-gray-400">Publicado justo ahora</span>
+                        </div>
+                    </div>
+                    <span class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">
+                        <i class="fa-solid fa-pen text-xs mr-1"></i> ${escapeHTML(category)}
+                    </span>
+                </div>
+
+                <h3 class="text-xl font-black text-gray-800 mb-3">${escapeHTML(title)}</h3>
+                
+                <div class="bg-pink-50/80 p-4 rounded-xl border border-pink-200 mb-4 font-poem text-xl text-gray-700 whitespace-pre-line">
+                    "${escapeHTML(content)}"
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-gray-100 text-xs text-gray-500 font-bold">
+                    <div class="flex items-center gap-4">
+                        <button class="hover:text-pink-600 flex items-center gap-1.5 transition-colors">
+                            <i class="fa-regular fa-heart text-pink-500 text-sm"></i> 1 Me gusta
+                        </button>
+                        <button class="hover:text-pink-600 flex items-center gap-1.5 transition-colors">
+                            <i class="fa-regular fa-comment text-purple-500 text-sm"></i> 0 Comentarios
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Insertamos el nuevo post al principio de la lista
+            postsContainer.prepend(newPostHTML);
+
+            // Limpiamos el formulario
+            document.getElementById('poem-form').reset();
+
+            // Mostramos la notificación flotante estilo DDLC
+            showToast('¡Poema Publicado!', `${author}, tu contribución se ha añadido al foro.`);
+        }
